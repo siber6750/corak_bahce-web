@@ -1,0 +1,1213 @@
+apayım!</think>```html
+<!DOCTYPE html>
+
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sayı Tahmin Oyunu</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+--bg: #080810;
+--bg2: #0e0e1a;
+--card: rgba(18, 18, 35, 0.75);
+--border: rgba(245, 158, 11, 0.15);
+--accent: #f59e0b;
+--accent2: #f97316;
+--accent-glow: rgba(245, 158, 11, 0.3);
+--fg: #f0ece4;
+--muted: #7a7585;
+--hot: #ef4444;
+--warm: #f97316;
+--cool: #06b6d4;
+--cold: #6366f1;
+--success: #22c55e;
+--danger: #ef4444;
+}
+
+{ margin: 0; padding: 0; box-sizing: border-box; }
+body {
+font-family: 'Space Grotesk', sans-serif;
+background: var(--bg);
+color: var(--fg);
+min-height: 100vh;
+overflow-x: hidden;
+position: relative;
+}
+
+/* Arka plan animasyonlu bloblar */
+.bg-blob {
+position: fixed;
+border-radius: 50%;
+filter: blur(120px);
+opacity: 0.4;
+pointer-events: none;
+z-index: 0;
+animation: blobFloat 12s ease-in-out infinite alternate;
+}
+.bg-blob.b1 { width: 500px; height: 500px; background: rgba(245,158,11,0.15); top: -10%; left: -5%; animation-delay: 0s; }
+.bg-blob.b2 { width: 400px; height: 400px; background: rgba(249,115,22,0.1); bottom: -10%; right: -5%; animation-delay: -4s; }
+.bg-blob.b3 { width: 350px; height: 350px; background: rgba(6,182,212,0.08); top: 50%; left: 60%; animation-delay: -8s; }
+
+@keyframes blobFloat {
+0% { transform: translate(0, 0) scale(1); }
+33% { transform: translate(30px, -40px) scale(1.1); }
+66% { transform: translate(-20px, 30px) scale(0.95); }
+100% { transform: translate(10px, -20px) scale(1.05); }
+}
+
+/* Yıldız parçacıkları */
+.stars-canvas {
+position: fixed;
+top: 0; left: 0;
+width: 100%; height: 100%;
+z-index: 0;
+pointer-events: none;
+}
+
+/* Ana container */
+.container {
+position: relative;
+z-index: 1;
+max-width: 680px;
+margin: 0 auto;
+padding: 30px 20px 60px;
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+align-items: center;
+}
+
+/* Başlık */
+.game-header {
+text-align: center;
+margin-bottom: 36px;
+width: 100%;
+}
+
+.game-title {
+font-family: 'Orbitron', sans-serif;
+font-size: clamp(28px, 6vw, 48px);
+font-weight: 900;
+letter-spacing: 3px;
+background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, #fbbf24 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+line-height: 1.2;
+position: relative;
+display: inline-block;
+}
+.game-title::after {
+content: '';
+position: absolute;
+bottom: -8px;
+left: 50%;
+transform: translateX(-50%);
+width: 60%;
+height: 3px;
+background: linear-gradient(90deg, transparent, var(--accent), transparent);
+border-radius: 2px;
+}
+
+.game-subtitle {
+color: var(--muted);
+font-size: 14px;
+margin-top: 16px;
+font-weight: 300;
+letter-spacing: 2px;
+text-transform: uppercase;
+}
+
+/* Stat bar */
+.stats-bar {
+display: flex;
+gap: 12px;
+width: 100%;
+margin-bottom: 28px;
+flex-wrap: wrap;
+justify-content: center;
+}
+
+.stat-card {
+flex: 1;
+min-width: 130px;
+background: var(--card);
+border: 1px solid var(--border);
+border-radius: 14px;
+padding: 16px 14px;
+text-align: center;
+backdrop-filter: blur(16px);
+transition: all 0.3s ease;
+}
+.stat-card:hover {
+border-color: rgba(245,158,11,0.35);
+transform: translateY(-2px);
+}
+
+.stat-icon {
+font-size: 20px;
+margin-bottom: 6px;
+color: var(--accent);
+}
+
+.stat-value {
+font-family: 'Orbitron', sans-serif;
+font-size: 26px;
+font-weight: 700;
+color: var(--fg);
+line-height: 1;
+}
+
+.stat-label {
+font-size: 11px;
+color: var(--muted);
+margin-top: 4px;
+text-transform: uppercase;
+letter-spacing: 1.5px;
+}
+
+/* Sıcaklık göstergesi */
+.heat-section {
+width: 100%;
+margin-bottom: 28px;
+}
+
+.heat-bar-container {
+background: rgba(18, 18, 35, 0.6);
+border: 1px solid var(--border);
+border-radius: 16px;
+padding: 20px 24px;
+backdrop-filter: blur(16px);
+}
+
+.heat-label {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 12px;
+}
+.heat-label span {
+font-size: 12px;
+text-transform: uppercase;
+letter-spacing: 1.5px;
+color: var(--muted);
+}
+.heat-text {
+font-family: 'Orbitron', sans-serif;
+font-size: 14px;
+font-weight: 700;
+transition: color 0.4s ease;
+}
+
+.heat-bar {
+width: 100%;
+height: 10px;
+background: rgba(255,255,255,0.05);
+border-radius: 5px;
+overflow: hidden;
+position: relative;
+}
+
+.heat-fill {
+height: 100%;
+border-radius: 5px;
+width: 0%;
+transition: width 0.6s ease, background 0.6s ease;
+position: relative;
+}
+.heat-fill::after {
+content: '';
+position: absolute;
+right: 0;
+top: -3px;
+width: 16px;
+height: 16px;
+border-radius: 50%;
+background: inherit;
+box-shadow: 0 0 12px currentColor;
+transition: background 0.6s ease;
+}
+
+/* Tahmin alanı */
+.guess-section {
+width: 100%;
+margin-bottom: 28px;
+}
+
+.guess-card {
+background: var(--card);
+border: 1px solid var(--border);
+border-radius: 20px;
+padding: 32px 28px;
+backdrop-filter: blur(16px);
+text-align: center;
+}
+
+.range-info {
+font-size: 13px;
+color: var(--muted);
+margin-bottom: 24px;
+letter-spacing: 1px;
+}
+.range-info strong {
+color: var(--accent);
+font-weight: 700;
+font-family: 'Orbitron', sans-serif;
+}
+
+.input-row {
+display: flex;
+gap: 12px;
+align-items: stretch;
+max-width: 400px;
+margin: 0 auto;
+}
+
+.guess-input {
+flex: 1;
+background: rgba(255,255,255,0.04);
+border: 2px solid rgba(245,158,11,0.2);
+border-radius: 14px;
+padding: 16px 20px;
+font-size: 24px;
+font-family: 'Orbitron', sans-serif;
+font-weight: 700;
+color: var(--fg);
+text-align: center;
+outline: none;
+transition: all 0.3s ease;
+-moz-appearance: textfield;
+}
+.guess-input::-webkit-outer-spin-button,
+.guess-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.guess-input:focus {
+border-color: var(--accent);
+box-shadow: 0 0 20px var(--accent-glow);
+}
+.guess-input::placeholder {
+color: rgba(255,255,255,0.15);
+font-size: 16px;
+}
+
+.guess-btn {
+background: linear-gradient(135deg, var(--accent), var(--accent2));
+border: none;
+border-radius: 14px;
+padding: 16px 28px;
+font-size: 18px;
+font-family: 'Orbitron', sans-serif;
+font-weight: 700;
+color: #080810;
+cursor: pointer;
+transition: all 0.3s ease;
+white-space: nowrap;
+position: relative;
+overflow: hidden;
+}
+.guess-btn::before {
+content: '';
+position: absolute;
+top: 0; left: -100%;
+width: 100%; height: 100%;
+background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+transition: left 0.5s ease;
+}
+.guess-btn:hover::before { left: 100%; }
+.guess-btn:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 24px var(--accent-glow);
+}
+.guess-btn:active { transform: translateY(0) scale(0.97); }
+.guess-btn:disabled {
+opacity: 0.4;
+cursor: not-allowed;
+transform: none !important;
+box-shadow: none !important;
+}
+
+/* Mesaj */
+.message-area {
+min-height: 56px;
+display: flex;
+align-items: center;
+justify-content: center;
+margin-top: 20px;
+}
+
+.message {
+padding: 12px 24px;
+border-radius: 12px;
+font-size: 15px;
+font-weight: 600;
+animation: msgIn 0.4s ease;
+display: flex;
+align-items: center;
+gap: 10px;
+max-width: 100%;
+}
+.message.higher {
+background: rgba(239,68,68,0.12);
+border: 1px solid rgba(239,68,68,0.25);
+color: #fca5a5;
+}
+.message.lower {
+background: rgba(6,182,212,0.12);
+border: 1px solid rgba(6,182,212,0.25);
+color: #67e8f9;
+}
+.message.correct {
+background: rgba(34,197,94,0.15);
+border: 1px solid rgba(34,197,94,0.3);
+color: #86efac;
+font-size: 17px;
+}
+.message.hint {
+background: rgba(245,158,11,0.1);
+border: 1px solid rgba(245,158,11,0.2);
+color: #fcd34d;
+}
+.message.fail {
+background: rgba(239,68,68,0.12);
+border: 1px solid rgba(239,68,68,0.25);
+color: #fca5a5;
+}
+
+@keyframes msgIn {
+from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Tahmin geçmişi */
+.history-section {
+width: 100%;
+margin-bottom: 28px;
+}
+
+.history-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 14px;
+}
+.history-title {
+font-family: 'Orbitron', sans-serif;
+font-size: 13px;
+letter-spacing: 2px;
+color: var(--muted);
+text-transform: uppercase;
+}
+
+.history-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+gap: 8px;
+}
+
+.history-item {
+background: var(--card);
+border: 1px solid var(--border);
+border-radius: 12px;
+padding: 10px 6px;
+text-align: center;
+animation: histIn 0.35s ease;
+backdrop-filter: blur(8px);
+position: relative;
+overflow: hidden;
+}
+
+.history-item .h-num {
+font-family: 'Orbitron', sans-serif;
+font-size: 18px;
+font-weight: 700;
+line-height: 1;
+}
+.history-item .h-dir {
+font-size: 14px;
+margin-top: 4px;
+}
+.history-item.up { border-color: rgba(239,68,68,0.25); }
+.history-item.up .h-num { color: #fca5a5; }
+.history-item.up .h-dir { color: #ef4444; }
+
+.history-item.down { border-color: rgba(6,182,212,0.25); }
+.history-item.down .h-num { color: #67e8f9; }
+.history-item.down .h-dir { color: #06b6d4; }
+
+.history-item.hit {
+border-color: rgba(34,197,94,0.4);
+background: rgba(34,197,94,0.08);
+}
+.history-item.hit .h-num { color: #86efac; }
+.history-item.hit .h-dir { color: #22c55e; }
+
+@keyframes histIn {
+from { opacity: 0; transform: scale(0.8); }
+to { opacity: 1; transform: scale(1); }
+}
+
+/* Yeni oyun butonu */
+.new-game-btn {
+background: transparent;
+border: 2px solid var(--accent);
+border-radius: 14px;
+padding: 14px 36px;
+font-size: 15px;
+font-family: 'Orbitron', sans-serif;
+font-weight: 700;
+color: var(--accent);
+cursor: pointer;
+transition: all 0.3s ease;
+letter-spacing: 1px;
+margin-top: 8px;
+}
+.new-game-btn:hover {
+background: var(--accent);
+color: var(--bg);
+box-shadow: 0 4px 20px var(--accent-glow);
+transform: translateY(-2px);
+}
+
+/* Zorluk seçimi */
+.difficulty-section {
+width: 100%;
+margin-bottom: 28px;
+}
+
+.diff-card {
+background: var(--card);
+border: 1px solid var(--border);
+border-radius: 16px;
+padding: 24px;
+backdrop-filter: blur(16px);
+}
+
+.diff-title {
+font-family: 'Orbitron', sans-serif;
+font-size: 12px;
+letter-spacing: 2px;
+color: var(--muted);
+text-transform: uppercase;
+text-align: center;
+margin-bottom: 16px;
+}
+
+.diff-options {
+display: flex;
+gap: 10px;
+justify-content: center;
+flex-wrap: wrap;
+}
+
+.diff-btn {
+flex: 1;
+min-width: 100px;
+padding: 14px 12px;
+border: 2px solid rgba(245,158,11,0.15);
+border-radius: 12px;
+background: rgba(255,255,255,0.02);
+cursor: pointer;
+text-align: center;
+transition: all 0.3s ease;
+color: var(--fg);
+}
+.diff-btn:hover {
+border-color: rgba(245,158,11,0.4);
+background: rgba(245,158,11,0.05);
+}
+.diff-btn.active {
+border-color: var(--accent);
+background: rgba(245,158,11,0.1);
+box-shadow: 0 0 16px rgba(245,158,11,0.1);
+}
+.diff-btn .diff-name {
+font-family: 'Orbitron', sans-serif;
+font-size: 13px;
+font-weight: 700;
+margin-bottom: 4px;
+}
+.diff-btn .diff-desc {
+font-size: 11px;
+color: var(--muted);
+}
+
+/* Konfeti */
+.confetti-container {
+position: fixed;
+top: 0; left: 0;
+width: 100%; height: 100%;
+pointer-events: none;
+z-index: 100;
+overflow: hidden;
+}
+.confetti-piece {
+position: absolute;
+width: 10px;
+height: 10px;
+top: -20px;
+animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+80% { opacity: 1; }
+100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; }
+}
+
+/* Shake animasyonu */
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+.shake { animation: shake 0.5s ease; }
+
+/* Pulse glow */
+@keyframes pulseGlow {
+0%, 100% { box-shadow: 0 0 8px var(--accent-glow); }
+50% { box-shadow: 0 0 24px var(--accent-glow), 0 0 48px rgba(245,158,11,0.15); }
+}
+.pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+
+/* Skor tablosu */
+.score-section {
+width: 100%;
+}
+
+.score-card {
+background: var(--card);
+border: 1px solid var(--border);
+border-radius: 16px;
+padding: 24px;
+backdrop-filter: blur(16px);
+}
+
+.score-title {
+font-family: 'Orbitron', sans-serif;
+font-size: 12px;
+letter-spacing: 2px;
+color: var(--muted);
+text-transform: uppercase;
+text-align: center;
+margin-bottom: 16px;
+}
+
+.score-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 12px;
+}
+
+.score-item {
+text-align: center;
+}
+.score-item .s-val {
+font-family: 'Orbitron', sans-serif;
+font-size: 28px;
+font-weight: 900;
+background: linear-gradient(135deg, var(--accent), #fbbf24);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+line-height: 1;
+}
+.score-item .s-label {
+font-size: 10px;
+color: var(--muted);
+text-transform: uppercase;
+letter-spacing: 1px;
+margin-top: 4px;
+}
+
+/* Toast */
+.toast-container {
+position: fixed;
+top: 20px;
+right: 20px;
+z-index: 200;
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+.toast {
+background: rgba(18,18,35,0.95);
+border: 1px solid var(--border);
+border-radius: 12px;
+padding: 14px 20px;
+backdrop-filter: blur(16px);
+animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+font-size: 14px;
+max-width: 300px;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+@keyframes toastIn {
+from { opacity: 0; transform: translateX(30px); }
+to { opacity: 1; transform: translateX(0); }
+}
+@keyframes toastOut {
+from { opacity: 1; transform: translateX(0); }
+to { opacity: 0; transform: translateX(30px); }
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+.container { padding: 20px 14px 40px; }
+.guess-card { padding: 24px 16px; }
+.input-row { flex-direction: column; }
+.guess-btn { padding: 14px; }
+.history-grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); }
+.diff-options { flex-direction: column; }
+}
+
+/* Azalan haklar uyarısı */
+.stat-card.warning .stat-value { color: var(--warm); }
+.stat-card.danger .stat-value { color: var(--danger); animation: pulseGlow 1s ease-in-out infinite; }
+.stat-card.danger { border-color: rgba(239,68,68,0.3); }
+
+/* Gizli ipucu butonu */
+.hint-btn {
+background: transparent;
+border: 1px solid rgba(245,158,11,0.2);
+border-radius: 10px;
+padding: 8px 18px;
+font-size: 12px;
+font-family: 'Space Grotesk', sans-serif;
+color: var(--muted);
+cursor: pointer;
+transition: all 0.3s ease;
+letter-spacing: 1px;
+}
+.hint-btn:hover {
+border-color: var(--accent);
+color: var(--accent);
+}
+.hint-btn:disabled {
+opacity: 0.3;
+cursor: not-allowed;
+}
+</style>
+
+</head>
+<body>
+
+<!-- Arka plan blobları -->
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+<div class="bg-blob b3"></div>
+
+<!-- Yıldız canvas -->
+<canvas class="stars-canvas" id="starsCanvas"></canvas>
+
+<!-- Konfeti container -->
+<div class="confetti-container" id="confettiContainer"></div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="container">
+
+<!-- Başlık -->
+<header class="game-header">
+<div class="game-title">SAYI TAHMİN</div>
+<p class="game-subtitle">Gizli sayıyı bulmak için tahminini yap</p>
+</header>
+
+<!-- Zorluk seçimi -->
+<section class="difficulty-section">
+<div class="diff-card">
+<div class="diff-title">Zorluk Seviyesi</div>
+<div class="diff-options">
+<button class="diff-btn" data-max="50" data-lives="12" onclick="setDifficulty(this)">
+<div class="diff-name">Kolay</div>
+<div class="diff-desc">1-50 / 12 hak</div>
+</button>
+<button class="diff-btn active" data-max="100" data-lives="10" onclick="setDifficulty(this)">
+<div class="diff-name">Normal</div>
+<div class="diff-desc">1-100 / 10 hak</div>
+</button>
+<button class="diff-btn" data-max="200" data-lives="8" onclick="setDifficulty(this)">
+<div class="diff-name">Zor</div>
+<div class="diff-desc">1-200 / 8 hak</div>
+</button>
+<button class="diff-btn" data-max="500" data-lives="7" onclick="setDifficulty(this)">
+<div class="diff-name">Çılgın</div>
+<div class="diff-desc">1-500 / 7 hak</div>
+</button>
+</div>
+</div>
+</section>
+
+<!-- Stat bar -->
+<section class="stats-bar">
+<div class="stat-card" id="livesCard">
+<div class="stat-icon"><i class="fas fa-heart"></i></div>
+<div class="stat-value" id="livesVal">10</div>
+<div class="stat-label">Kalan Hak</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon"><i class="fas fa-hashtag"></i></div>
+<div class="stat-value" id="attemptsVal">0</div>
+<div class="stat-label">Tahmin Sayısı</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon"><i class="fas fa-trophy"></i></div>
+<div class="stat-value" id="bestVal">-</div>
+<div class="stat-label">En İyi Skor</div>
+</div>
+</section>
+
+<!-- Sıcaklık göstergesi -->
+<section class="heat-section">
+<div class="heat-bar-container">
+<div class="heat-label">
+<span><i class="fas fa-snowflake"></i> Uzak</span>
+<span class="heat-text" id="heatText" style="color: var(--muted);">Henüz tahmin yok</span>
+<span>Yakin <i class="fas fa-fire"></i></span>
+</div>
+<div class="heat-bar">
+<div class="heat-fill" id="heatFill"></div>
+</div>
+</div>
+</section>
+
+<!-- Tahmin alanı -->
+<section class="guess-section">
+<div class="guess-card">
+<div class="range-info">
+<i class="fas fa-bullseye" style="color: var(--accent);"></i>
+<span>1 ile <strong id="maxDisplay">100</strong> arasındaki sayıyı tahmin et</span>
+</div>
+<div class="input-row">
+<input type="number" class="guess-input" id="guessInput" placeholder="?" min="1" max="100" autocomplete="off">
+<button class="guess-btn" id="guessBtn" onclick="makeGuess()">
+<i class="fas fa-paper-plane"></i> Tahmin Et
+</button>
+</div>
+<div class="message-area" id="messageArea"></div>
+<div style="margin-top: 12px; display: flex; gap: 10px; justify-content: center; align-items: center;">
+<button class="hint-btn" id="hintBtn" onclick="giveHint()">
+<i class="fas fa-lightbulb"></i> Ipucu Al
+</button>
+<button class="new-game-btn" onclick="resetGame()" style="padding: 8px 18px; font-size: 12px;">
+<i class="fas fa-redo"></i> Yeni Oyun
+</button>
+</div>
+</div>
+</section>
+
+<!-- Tahmin geçmişi -->
+<section class="history-section" id="historySection" style="display: none;">
+<div class="history-header">
+<div class="history-title"><i class="fas fa-clock-rotate-left"></i> Tahmin Geçmisi</div>
+</div>
+<div class="history-grid" id="historyGrid"></div>
+</section>
+
+<!-- Skor tablosu -->
+<section class="score-section">
+<div class="score-card">
+<div class="score-title"><i class="fas fa-chart-bar"></i> Istatistikler</div>
+<div class="score-grid">
+<div class="score-item">
+<div class="s-val" id="totalGames">0</div>
+<div class="s-label">Toplam Oyun</div>
+</div>
+<div class="score-item">
+<div class="s-val" id="totalWins">0</div>
+<div class="s-label">Kazanma</div>
+</div>
+<div class="score-item">
+<div class="s-val" id="winRate">0%</div>
+<div class="s-label">Kazanma Orani</div>
+</div>
+</div>
+</div>
+</section>
+
+</div>
+
+<script>
+// ===== Yıldız animasyonu =====
+const starsCanvas = document.getElementById('starsCanvas');
+const starsCtx = starsCanvas.getContext('2d');
+let stars = [];
+
+function initStars() {
+starsCanvas.width = window.innerWidth;
+starsCanvas.height = window.innerHeight;
+stars = [];
+const count = Math.floor((starsCanvas.width * starsCanvas.height) / 8000);
+for (let i = 0; i < count; i++) {
+stars.push({
+x: Math.random() * starsCanvas.width,
+y: Math.random() * starsCanvas.height,
+size: Math.random() * 1.5 + 0.3,
+speed: Math.random() * 0.3 + 0.05,
+opacity: Math.random() * 0.6 + 0.2,
+pulse: Math.random() * Math.PI * 2
+});
+}
+}
+
+function animateStars() {
+starsCtx.clearRect(0, 0, starsCanvas.width, starsCanvas.height);
+stars.forEach(s => {
+s.pulse += 0.02;
+s.y -= s.speed;
+if (s.y < -5) {
+s.y = starsCanvas.height + 5;
+s.x = Math.random() * starsCanvas.width;
+}
+const opacity = s.opacity * (0.6 + 0.4 * Math.sin(s.pulse));
+starsCtx.beginPath();
+starsCtx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+starsCtx.fillStyle = `rgba(245, 200, 120, ${opacity})`;
+starsCtx.fill();
+});
+requestAnimationFrame(animateStars);
+}
+
+initStars();
+animateStars();
+window.addEventListener('resize', initStars);
+
+// ===== Oyun değişkenleri =====
+let maxNumber = 100;
+let maxLives = 10;
+let secretNumber = 0;
+let lives = maxLives;
+let attempts = 0;
+let guesses = [];
+let gameOver = false;
+let hintsUsed = 0;
+let bestScore = Infinity;
+
+// Istatistikler (localStorage)
+let stats = JSON.parse(localStorage.getItem('guessGameStats') || '{"games":0,"wins":0}');
+updateStatsDisplay();
+
+// ===== Zorluk ayarı =====
+function setDifficulty(btn) {
+if (attempts > 0 && !gameOver) {
+showToast('<i class="fas fa-exclamation-triangle" style="color:var(--accent)"></i> Oyun sirasinda zorluk degistirilemez!');
+return;
+}
+document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+btn.classList.add('active');
+maxNumber = parseInt(btn.dataset.max);
+maxLives = parseInt(btn.dataset.lives);
+document.getElementById('maxDisplay').textContent = maxNumber;
+document.getElementById('guessInput').max = maxNumber;
+resetGame();
+}
+
+// ===== Oyun başlatma =====
+function initGame() {
+secretNumber = Math.floor(Math.random() * maxNumber) + 1;
+lives = maxLives;
+attempts = 0;
+guesses = [];
+gameOver = false;
+hintsUsed = 0;
+
+document.getElementById('livesVal').textContent = lives;
+document.getElementById('attemptsVal').textContent = 0;
+document.getElementById('livesCard').className = 'stat-card';
+document.getElementById('messageArea').innerHTML = '';
+document.getElementById('historyGrid').innerHTML = '';
+document.getElementById('historySection').style.display = 'none';
+document.getElementById('guessInput').value = '';
+document.getElementById('guessInput').disabled = false;
+document.getElementById('guessBtn').disabled = false;
+document.getElementById('hintBtn').disabled = false;
+document.getElementById('guessInput').focus();
+
+// Sıcaklık barı sıfırla
+document.getElementById('heatFill').style.width = '0%';
+document.getElementById('heatText').textContent = 'Henüz tahmin yok';
+document.getElementById('heatText').style.color = 'var(--muted)';
+
+// En iyi skoru göster
+const key = 'best_' + maxNumber;
+const saved = localStorage.getItem(key);
+if (saved) {
+bestScore = parseInt(saved);
+document.getElementById('bestVal').textContent = bestScore;
+} else {
+bestScore = Infinity;
+document.getElementById('bestVal').textContent = '-';
+}
+}
+
+function resetGame() {
+initGame();
+showToast('<i class="fas fa-sparkles" style="color:var(--accent)"></i> Yeni oyun basladi! Iyi sanslar!');
+}
+
+// ===== Tahmin yapma =====
+function makeGuess() {
+if (gameOver) return;
+
+const input = document.getElementById('guessInput');
+const val = parseInt(input.value);
+
+if (isNaN(val) || val < 1 || val > maxNumber) {
+showMessage('hint', `<i class="fas fa-exclamation-circle"></i> Lütfen 1 ile ${maxNumber} arasinda bir sayi gir!`);
+input.classList.add('shake');
+setTimeout(() => input.classList.remove('shake'), 500);
+return;
+}
+
+// Aynı tahmin kontrolü
+if (guesses.includes(val)) {
+showMessage('hint', `<i class="fas fa-redo"></i> ${val} sayisini zaten tahmin ettin! Baska bir sayi dene.`);
+input.classList.add('shake');
+setTimeout(() => input.classList.remove('shake'), 500);
+input.value = '';
+return;
+}
+
+attempts++;
+lives--;
+guesses.push(val);
+
+// UI güncelle
+document.getElementById('livesVal').textContent = lives;
+document.getElementById('attemptsVal').textContent = attempts;
+
+// Hak uyarı renkleri
+const livesCard = document.getElementById('livesCard');
+if (lives <= 2) {
+livesCard.className = 'stat-card danger';
+} else if (lives <= 4) {
+livesCard.className = 'stat-card warning';
+}
+
+// Sıcaklık hesapla
+updateHeat(val);
+
+// Geçmişe ekle
+addHistoryItem(val);
+
+if (val === secretNumber) {
+// KAZANDI
+gameOver = true;
+showMessage('correct', `<i class="fas fa-party-horn"></i> Tebrikler! ${secretNumber} sayisini ${attempts} tahminde buldun!`);
+document.getElementById('guessInput').disabled = true;
+document.getElementById('guessBtn').disabled = true;
+document.getElementById('hintBtn').disabled = true;
+
+// Skor kaydet
+if (attempts < bestScore) {
+bestScore = attempts;
+const key = 'best_' + maxNumber;
+localStorage.setItem(key, bestScore);
+document.getElementById('bestVal').textContent = bestScore;
+showToast('<i class="fas fa-crown" style="color:#fbbf24"></i> Yeni en iyi skor!');
+}
+
+// Istatistik güncelle
+stats.games++;
+stats.wins++;
+localStorage.setItem('guessGameStats', JSON.stringify(stats));
+updateStatsDisplay();
+
+// Konfeti!
+launchConfetti();
+} else if (lives <= 0) {
+// KAYBETTİ
+gameOver = true;
+showMessage('fail', `<i class="fas fa-skull"></i> Hakkin bitti! Gizli sayi <strong>${secretNumber}</strong> idi.`);
+document.getElementById('guessInput').disabled = true;
+document.getElementById('guessBtn').disabled = true;
+document.getElementById('hintBtn').disabled = true;
+
+stats.games++;
+localStorage.setItem('guessGameStats', JSON.stringify(stats));
+updateStatsDisplay();
+
+// Shake efekti
+document.querySelector('.guess-card').classList.add('shake');
+setTimeout(() => document.querySelector('.guess-card').classList.remove('shake'), 500);
+} else {
+// Devam ediyor
+const diff = val - secretNumber;
+if (val < secretNumber) {
+showMessage('higher', `<i class="fas fa-arrow-up"></i> Daha yüksek! Kalan hak: ${lives}`);
+} else {
+showMessage('lower', `<i class="fas fa-arrow-down"></i> Daha düşük! Kalan hak: ${lives}`);
+}
+
+// Son hak uyarısı
+if (lives === 1) {
+showToast('<i class="fas fa-heart-crack" style="color:var(--danger)"></i> Son hakkin! Dikkatli tahmin et!');
+}
+}
+
+input.value = '';
+input.focus();
+}
+
+// ===== Mesaj gösterme =====
+function showMessage(type, html) {
+const area = document.getElementById('messageArea');
+area.innerHTML = `<div class="message ${type}">${html}</div>`;
+}
+
+// ===== Sıcaklık güncelleme =====
+function updateHeat(guess) {
+const distance = Math.abs(guess - secretNumber);
+const maxDist = maxNumber;
+const proximity = 1 - (distance / maxDist);
+const percent = Math.max(0, Math.min(100, proximity * 100));
+
+const heatFill = document.getElementById('heatFill');
+const heatText = document.getElementById('heatText');
+
+heatFill.style.width = percent + '%';
+
+let color, text;
+if (distance === 0) {
+color = '#22c55e';
+text = 'Buldun!';
+} else if (distance <= maxNumber * 0.03) {
+color = '#ef4444';
+text = 'Cok sicak!';
+} else if (distance <= maxNumber * 0.08) {
+color = '#f97316';
+text = 'Sicak';
+} else if (distance <= maxNumber * 0.18) {
+color = '#eab308';
+text = 'Ilık';
+} else if (distance <= maxNumber * 0.35) {
+color = '#06b6d4';
+text = 'Soguk';
+} else {
+color = '#6366f1';
+text = 'Buz gibi!';
+}
+
+heatFill.style.background = `linear-gradient(90deg, ${color}88, ${color})`;
+heatText.textContent = text;
+heatText.style.color = color;
+}
+
+// ===== Geçmiş öğesi ekleme =====
+function addHistoryItem(val) {
+document.getElementById('historySection').style.display = 'block';
+const grid = document.getElementById('historyGrid');
+
+const item = document.createElement('div');
+let cls, dirIcon;
+if (val === secretNumber) {
+cls = 'hit';
+dirIcon = '<i class="fas fa-check"></i>';
+} else if (val < secretNumber) {
+cls = 'up';
+dirIcon = '<i class="fas fa-arrow-up"></i>';
+} else {
+cls = 'down';
+dirIcon = '<i class="fas fa-arrow-down"></i>';
+}
+item.className = `history-item ${cls}`;
+item.innerHTML = `<div class="h-num">${val}</div><div class="h-dir">${dirIcon}</div>`;
+
+grid.insertBefore(item, grid.firstChild);
+}
+
+// ===== Ipucu =====
+function giveHint() {
+if (gameOver || attempts === 0) {
+showToast('<i class="fas fa-info-circle" style="color:var(--accent)"></i> Önce bir tahmin yapmalisin!');
+return;
+}
+
+if (hintsUsed >= 3) {
+showToast('<i class="fas fa-ban" style="color:var(--danger)"></i> Maksimum ipucu hakki dolmus!');
+return;
+}
+
+hintsUsed++;
+const lastGuess = guesses[guesses.length - 1];
+const diff = Math.abs(lastGuess - secretNumber);
+const range = Math.max(5, Math.floor(maxNumber * 0.1));
+
+let hintMsg;
+if (secretNumber % 2 === 0) {
+hintMsg = 'Gizli sayi cift bir sayi.';
+} else {
+hintMsg = 'Gizli sayi tek bir sayi.';
+}
+
+// İpucu başına bir hak kes
+lives = Math.max(1, lives - 1);
+document.getElementById('livesVal').textContent = lives;
+
+const livesCard = document.getElementById('livesCard');
+if (lives <= 2) {
+livesCard.className = 'stat-card danger';
+} else if (lives <= 4) {
+livesCard.className = 'stat-card warning';
+}
+
+showMessage('hint', `<i class="fas fa-lightbulb"></i> Ipucu: ${hintMsg} (1 hak kisirildi)`);
+document.getElementById('hintBtn').textContent = `${3 - hintsUsed} ipucu hakki`;
+if (hintsUsed >= 3) document.getElementById('hintBtn').disabled = true;
+}
+
+// ===== Konfeti efekti =====
+function launchConfetti() {
+const container = document.getElementById('confettiContainer');
+const colors = ['#f59e0b', '#fbbf24', '#f97316', '#22c55e', '#06b6d4', '#ef4444', '#a855f7', '#ec4899'];
+
+for (let i = 0; i < 120; i++) {
+setTimeout(() => {
+const piece = document.createElement('div');
+piece.className = 'confetti-piece';
+piece.style.left = Math.random() * 100 + '%';
+piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+piece.style.width = (Math.random() * 8 + 5) + 'px';
+piece.style.height = (Math.random() * 8 + 5) + 'px';
+piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+piece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+piece.style.animationDelay = (Math.random() * 0.5) + 's';
+container.appendChild(piece);
+setTimeout(() => piece.remove(), 4500);
+}, i * 20);
+}
+}
+
+// ===== Toast bildirimi =====
+function showToast(html) {
+const container = document.getElementById('toastContainer');
+const toast = document.createElement('div');
+toast.className = 'toast';
+toast.innerHTML = html;
+container.appendChild(toast);
+setTimeout(() => toast.remove(), 3200);
+}
+
+// ===== Istatistik güncelle =====
+function updateStatsDisplay() {
+document.getElementById('totalGames').textContent = stats.games;
+document.getElementById('totalWins').textContent = stats.wins;
+document.getElementById('winRate').textContent = stats.games > 0 ? Math.round((stats.wins / stats.games) * 100) + '%' : '0%';
+}
+
+// ===== Enter tuşu desteği =====
+document.getElementById('guessInput').addEventListener('keydown', function(e) {
+if (e.key === 'Enter') {
+e.preventDefault();
+makeGuess();
+}
+});
+
+// ===== Oyunu başlat =====
+initGame();
+</script>
+</body>
+</html>
+```
